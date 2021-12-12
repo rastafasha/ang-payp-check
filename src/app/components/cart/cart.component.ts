@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { ICreateOrderRequest, IPayPalConfig } from 'ngx-paypal';
 import { Product } from 'src/app/models/product';
 import { MessageService } from 'src/app/services/message.service';
@@ -7,6 +7,7 @@ import { StorageService } from '../../services/storage.service';
 import { environment } from '../../../environments/environment';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalComponent } from '../modal/modal.component';
+import { ProductService } from 'src/app/services/product.service';
 //import { NgxSpinnerService } from "ngx-spinner";
 
 @Component({
@@ -16,8 +17,12 @@ import { ModalComponent } from '../modal/modal.component';
 })
 export class CartComponent implements OnInit {
 
+  @Input() cartItem: CartItemModel;
+
   cartItems=[];
   total= 0;
+
+
 
   public payPalConfig ? : IPayPalConfig;
 
@@ -35,30 +40,44 @@ export class CartComponent implements OnInit {
     }
     this.getItem();
     this.total = this.getTotal();
+    console.log(this.cartItems);
+    console.log(this.cartItems[0]);
+
+
 
     this.initConfig();//paypal
   }
 
   private initConfig(): void {
     this.payPalConfig = {
-        currency: 'USD',
-        clientId: environment.clientId,//client id de paypal
-        createOrderOnClient: (data) => < ICreateOrderRequest > {
-            intent: 'CAPTURE',
-            purchase_units: [{
+      currency: 'USD',
+      clientId: 'sb',
+      createOrderOnClient: (data) => < ICreateOrderRequest > {
 
-                amount: {
-                    currency_code: 'USD',
-                    value: this.getTotal().toString(),
-                    breakdown: {
-                        item_total: {
-                            currency_code: 'USD',
-                            value: this.getTotal().toString()
-                        }
-                    }
-                },
-                items: this.getItemsList()
-            }]
+
+          intent: 'CAPTURE',
+          purchase_units: [{
+              amount: {
+                  currency_code: 'USD',
+                  value: this.getTotal().toString(),
+                  breakdown: {
+                      item_total: {
+                          currency_code: 'USD',
+                          value: this.getTotal().toString(),
+                      }
+                  }
+              },
+              items: [{
+                name: this.cartItems[0].productName,
+                quantity: this.cartItems[0].qty,
+                description: this.cartItems[0].description,
+                category: this.cartItems[0].category,
+                  unit_amount: {
+                      currency_code: 'USD',
+                      value: this.getTotal().toString(),
+                  },
+              }]
+          }]
         },
         advanced: {
             commit: 'true'
@@ -121,7 +140,7 @@ export class CartComponent implements OnInit {
   }
 
   getItemsList(): any[]{
-    const items: any[] =[];
+    const items: any[] = [];
     let item = {};
     this.cartItems.forEach((it: CartItemModel)=>{
       item = {
@@ -129,8 +148,8 @@ export class CartComponent implements OnInit {
         quantity: it.qty,
         category: it.category,
         unit_amount: {
+          value: it.productPrice,
           currecy_code: 'USD',
-          value: it.productPrice
         }
       };
       items.push(item);
