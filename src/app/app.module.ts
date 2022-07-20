@@ -17,7 +17,7 @@ import { ModalComponent } from './components/modal/modal.component';
 //pluggins
 import { NgxPayPalModule } from 'ngx-paypal';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-//import { NgxSpinnerModule } from "ngx-spinner";
+// import { NgxSpinnerModule } from "ngx-spinner";
 
 
 @NgModule({
@@ -36,7 +36,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     BrowserModule,
     NgbModule,
     AppRoutingModule,
-    //NgxSpinnerModule,
+    // NgxSpinnerModule,
     NgxPayPalModule
   ],
   providers: [],

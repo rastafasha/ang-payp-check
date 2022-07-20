@@ -7,8 +7,7 @@ import { StorageService } from '../../services/storage.service';
 import { environment } from '../../../environments/environment';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalComponent } from '../modal/modal.component';
-import { ProductService } from 'src/app/services/product.service';
-//import { NgxSpinnerService } from "ngx-spinner";
+// import { NgxSpinnerService } from "ngx-spinner";
 
 @Component({
   selector: 'app-cart',
@@ -17,10 +16,13 @@ import { ProductService } from 'src/app/services/product.service';
 })
 export class CartComponent implements OnInit {
 
+
   @Input() cartItem: CartItemModel;
 
   cartItems=[];
   total= 0;
+  value: string;
+  id:string;
 
 
 
@@ -30,28 +32,28 @@ export class CartComponent implements OnInit {
     private messageService: MessageService,
     private storageService: StorageService,
     private modalService: NgbModal,
-    //private spinner: NgxSpinnerService
+    // private spinner: NgxSpinnerService
 
-    ) { }
+    ) {
+
+    }
 
   ngOnInit(): void {
+    this.initConfig();//paypal
     if(this.storageService.existCart()){
       this.cartItems = this.storageService.getCart();
     }
     this.getItem();
     this.total = this.getTotal();
-    console.log(this.cartItems);
-    console.log(this.cartItems[0]);
-
-
-
-    this.initConfig();//paypal
   }
 
+
   private initConfig(): void {
+
     this.payPalConfig = {
       currency: 'USD',
-      clientId: 'sb',
+      clientId: environment.clientId,
+      // clientId: 'sb',
       createOrderOnClient: (data) => < ICreateOrderRequest > {
 
 
@@ -67,16 +69,9 @@ export class CartComponent implements OnInit {
                       }
                   }
               },
-              items: [{
-                name: this.cartItems[0].productName,
-                quantity: this.cartItems[0].qty,
-                description: this.cartItems[0].description,
-                category: this.cartItems[0].category,
-                  unit_amount: {
-                      currency_code: 'USD',
-                      value: this.getTotal().toString(),
-                  },
-              }]
+              items: this.getItemsList(),
+
+
           }]
         },
         advanced: {
@@ -87,7 +82,7 @@ export class CartComponent implements OnInit {
             layout: 'vertical'
         },
         onApprove: (data, actions) => {
-            //this.spinner.show();
+            // this.spinner.show();
             console.log('onApprove - transaction was approved, but not authorized', data, actions);
             actions.order.get().then(details => {
                 console.log('onApprove - you can get full order details inside onApprove: ', details);
@@ -102,7 +97,7 @@ export class CartComponent implements OnInit {
               data.purchase_units[0].amount.value,
             );
             this.emptyCart();
-            //this.spinner.hide();
+            // this.spinner.hide();
 
         },
         onCancel: (data, actions) => {
@@ -125,7 +120,7 @@ export class CartComponent implements OnInit {
       this.cartItems.forEach(item =>{
         if(item.productId === product.id){
           exists = true;
-          item.qty++;
+          item.quantity++;
         }
       });
       if(!exists){
@@ -139,28 +134,33 @@ export class CartComponent implements OnInit {
     });
   }
 
+
   getItemsList(): any[]{
+
     const items: any[] = [];
     let item = {};
     this.cartItems.forEach((it: CartItemModel)=>{
       item = {
         name: it.productName,
-        quantity: it.qty,
-        category: it.category,
         unit_amount: {
+          currency_code: 'USD',
           value: it.productPrice,
-          currecy_code: 'USD',
-        }
+        },
+        quantity: it.quantity,
+        category: it.category,
       };
       items.push(item);
     });
     return items;
   }
 
+
+
+
   getTotal():number{
     let total =  0;
     this.cartItems.forEach(item => {
-      total += item.qty * item.productPrice;
+      total += item.quantity * item.productPrice;
     });
     return +total.toFixed(2);
   }
@@ -172,8 +172,8 @@ export class CartComponent implements OnInit {
   }
 
   deletItem(i:number):void{
-    if(this.cartItems[i].qty > 1){
-      this.cartItems[i].qty--;
+    if(this.cartItems[i].quantity > 1){
+      this.cartItems[i].quantity--;
 
     }else{
       this.cartItems.splice(i, 1);

@@ -5,7 +5,7 @@ export class CartItemModel {
     productName: string;
     productPrice:number;
     description:string;
-    qty:number;
+    quantity:number;
     category:string;
 
     constructor(product: Product){
@@ -14,7 +14,7 @@ export class CartItemModel {
       this.category = product.category;
       this.description = product.description;
       this.productPrice = product.price;
-      this.qty = 1;
+      this.quantity = 1;
     }
 
 }
